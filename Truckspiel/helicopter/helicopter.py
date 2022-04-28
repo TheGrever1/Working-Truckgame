@@ -9,7 +9,7 @@ class Helikopter(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midbottom=(-500, 500))
         self.position = pygame.math.Vector2((self.rect.x, self.rect.y))
         self.type = type
-        self.speed = 3.5
+        self.speed = 2
 
     def respawn(self):
         self.position = pygame.math.Vector2(
@@ -24,3 +24,6 @@ class Helikopter(pygame.sprite.Sprite):
 
     def PlayerinArea(self, player_rect):
         return self.rect.colliderect(player_rect)
+
+    def Set_Speed(self, value):
+        self.speed += value

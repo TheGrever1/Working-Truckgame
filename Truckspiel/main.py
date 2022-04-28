@@ -1,5 +1,6 @@
 from typing import List
 import pygame
+import pygame_menu
 from sys import exit
 from Map.Anzeige import AnzeigeMenu
 from Map.buildings import *
@@ -14,7 +15,6 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("Truckspiel")
 
 erzabbau_usage = Erzabbaustelle()
-
 erzlager_usage = Erzlager()
 tankstelle_usage = Tankstelle()
 heli_usage = Helikopter()
@@ -41,7 +41,27 @@ def collision_sprite():
         player_usage.wareverloren()
 
 
+def set_difficulty(value, difficulty):
+    heli_usage.Set_Speed(value[1])
+
+
+def menu(text):
+    screen = pygame.display.set_mode((400, 300))
+    menu = pygame_menu.Menu(
+        "Transporter", 400, 300, theme=pygame_menu.themes.THEME_DARK
+    )
+
+    menu.add.label(text)
+    menu.add.selector(
+        "Difficulty :", [("Hard", 1), ("Easy", 2)], onchange=set_difficulty
+    )
+    menu.add.button("Play", game_loop)
+    menu.add.button("Quit", pygame_menu.events.EXIT)
+    menu.mainloop(screen)
+
+
 def game_loop():
+    screen = pygame.display.set_mode((1260, 930))
     gamestate = Gamestate.playing
     object_group.add(tankstelle_usage)
     object_group.add(erzabbau_usage)
@@ -51,12 +71,16 @@ def game_loop():
     while gamestate == Gamestate.playing:
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or player_usage.tankfullstand == 0:
+            if event.type == pygame.QUIT:
+                gamestate = Gamestate.menu
+            if player_usage.tankfullstand == 0:
                 gamestate = Gamestate.gameover
         if (player_usage.lager + erzabbau_usage.vorkommen + erzlager_usage.lager) <= (
             erzabbau_usage.maxvorkommen / 100
         ) * 80:
             gamestate = Gamestate.gameover
+        elif (erzlager_usage.lager) >= (erzabbau_usage.maxvorkommen / 100) * 80:
+            gamestate = Gamestate.gewonnen
 
         collision_sprite()
         heli_usage.move(player_usage.rect.center)
@@ -88,24 +112,13 @@ def game_loop():
         pygame.display.update()
         clock.tick(60)
     if gamestate == Gamestate.gameover:
-        menu()
+        menu("Verloren")
     if gamestate == Gamestate.menu:
-        menu()
+        menu("")
+    if gamestate == Gamestate.gewonnen:
+        menu("Gewonnen!")
 
 
-def menu():
-    pygame.quit()
-    pygame.init()
-    menuscreen = pygame.display.set_mode((500, 500))
-    while gamestate == Gamestate.menu:
-        i += 1
-
-
-def gameover():
-    # gameoverscreen + restart
-    pass
-
-
-game_loop()
+menu("Wilkommen")
 pygame.quit()
 exit()
